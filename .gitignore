@@ -1,0 +1,12 @@
+node_modules
+dist
+*.local
+.env
+.env.*
+!.env.example
+supabase/.branches
+supabase/.temp
+
+# Installed agent skills: reinstall from skills-lock.json (`npx skills add ...`); .claude/skills holds symlinks.
+.agents/
+.claude/skills/
