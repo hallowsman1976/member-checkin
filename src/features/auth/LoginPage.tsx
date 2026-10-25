@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PasswordInput } from '@/components/ui/password-input'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from './AuthProvider'
 
@@ -46,7 +47,8 @@ export function LoginPage() {
   return (
     <main className="flex min-h-full items-center justify-center p-4">
       <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
+        <CardHeader className="items-center text-center">
+          <img src="/logo.png" alt="ตราสหกรณ์ออมทรัพย์สาธารณสุขจังหวัดมุกดาหาร จำกัด" className="mx-auto size-28" />
           <p className="text-sm text-muted">สหกรณ์ออมทรัพย์สาธารณสุขจังหวัดมุกดาหาร จำกัด</p>
           <CardTitle className="text-xl text-primary">Smart Member Check-in 2569</CardTitle>
         </CardHeader>
@@ -58,7 +60,7 @@ export function LoginPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">รหัสผ่าน</Label>
-              <Input id="password" name="password" type="password" autoComplete="current-password" required />
+              <PasswordInput id="password" name="password" autoComplete="current-password" required />
             </div>
             <Button type="submit" className="w-full" size="lg" disabled={submitting}>
               {submitting ? <Loader2 className="size-5 animate-spin" aria-hidden /> : <LogIn className="size-5" aria-hidden />}

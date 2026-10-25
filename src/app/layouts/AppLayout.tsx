@@ -65,7 +65,10 @@ function StaffLayout() {
     <div className="flex h-full flex-col">
       <header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-surface px-4">
         <div className="flex min-w-0 items-center gap-4">
-          <span className="font-semibold text-primary">Smart Check-in 2569</span>
+          <span className="flex items-center gap-2 font-semibold text-primary">
+            <img src="/logo.png" alt="" className="size-9" />
+            Smart Check-in 2569
+          </span>
           <nav className="flex gap-1">
             {navItems
               .filter((item) => canAccess('staff', item.to))
@@ -103,9 +106,12 @@ function SidebarLayout() {
   return (
     <div className="flex h-full">
       <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-surface">
-        <div className="border-b border-border px-4 py-3">
-          <p className="font-semibold text-primary">Smart Check-in 2569</p>
-          <p className="truncate text-xs text-muted">{open_event?.title ?? 'ไม่มีกิจกรรมที่เปิดอยู่'}</p>
+        <div className="flex items-center gap-2 border-b border-border px-3 py-3">
+          <img src="/logo.png" alt="" className="size-10 shrink-0" />
+          <div className="min-w-0">
+            <p className="font-semibold text-primary">Smart Check-in 2569</p>
+            <p className="truncate text-xs text-muted">{open_event?.title ?? 'ไม่มีกิจกรรมที่เปิดอยู่'}</p>
+          </div>
         </div>
         <nav className="flex-1 space-y-1 overflow-auto p-2">
           {navItems

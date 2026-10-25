@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PasswordInput } from '@/components/ui/password-input'
 import { staffRoles, type StaffRole } from '@/features/auth/access'
 import { useStaffContext } from '@/features/auth/StaffContext'
 import { EventSelect, selectClass, useSelectedEvent } from '@/features/reports/EventFilters'
@@ -86,7 +87,7 @@ function CreateStaffDialog({ open, onClose }: { open: boolean; onClose: () => vo
         </div>
         <div className="space-y-1">
           <Label htmlFor="cs-password">รหัสผ่านเริ่มต้น (อย่างน้อย 8 ตัว มีตัวอักษรและตัวเลข)</Label>
-          <Input id="cs-password" name="password" type="password" minLength={8} required autoComplete="new-password" />
+          <PasswordInput id="cs-password" name="password" minLength={8} required autoComplete="new-password" />
         </div>
         <div className="space-y-1">
           <Label htmlFor="cs-role">บทบาท</Label>
@@ -179,7 +180,7 @@ function ResetPasswordDialog({ staff, onClose }: { staff: Staff | null; onClose:
       >
         <div className="space-y-1">
           <Label htmlFor="rp-password">รหัสผ่านใหม่ (อย่างน้อย 8 ตัว มีตัวอักษรและตัวเลข)</Label>
-          <Input id="rp-password" name="password" type="password" minLength={8} required autoComplete="new-password" />
+          <PasswordInput id="rp-password" name="password" minLength={8} required autoComplete="new-password" />
         </div>
         <div className="flex justify-end gap-2">
           <Button type="button" variant="ghost" onClick={onClose}>

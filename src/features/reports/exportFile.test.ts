@@ -74,5 +74,5 @@ describe('buildXlsx', () => {
     expect(sheet.getCell(4, 2).value).toBe('=HYPERLINK("x")')
     expect(sheet.getCell(4, 2).type).toBe(ExcelJS.ValueType.String)
     expect(sheet.getCell(4, 5).value).toBe('ยังไม่ลงทะเบียน')
-  })
+  }, 20_000) // first exceljs import can exceed the 5 s default on a cold cache
 })
