@@ -8,7 +8,7 @@ const envSchema = z.object({
 const parsed = envSchema.safeParse(import.meta.env)
 
 if (!parsed.success) {
-  throw new Error('Missing VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY. Copy .env.example to .env.local.')
+  throw new Error('Missing VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY. Copy .env.example to .env.development.local.')
 }
 
 export const env = parsed.data
