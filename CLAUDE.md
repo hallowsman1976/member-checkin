@@ -38,7 +38,7 @@ Act as a senior full-stack engineer, PostgreSQL architect, security engineer and
 - Validation: Zod; notifications: Sonner
 - Exports: ExcelJS / CSV
 - Tests: Vitest (frontend/unit), SQL tests (pgTAP) against local Supabase (`supabase start`, requires Docker), Playwright (E2E)
-- Deployment: Cloudflare Pages (static frontend)
+- Deployment: Cloudflare Workers static assets (`wrangler.toml`; static frontend, no server code)
 
 Keep all server logic in PostgreSQL RPC and Edge Functions; add a separate application server only with demonstrated need.
 
@@ -182,6 +182,6 @@ Performance targets to measure (not guarantees): search p95 < 1s, confirm p95 < 
 2. **Registration:** member search, detail/identity verification, atomic RPC, duplicate/cancelled handling, unknown-outcome recovery, keyboard-first UI and concurrency tests.
 3. **Dashboard:** authoritative aggregate queries, Realtime, history, reporting and audited Excel/CSV exports.
 4. **Administration:** import, eligibility generation, staff accounts (Edge Function), stations/assignments, event settings, auditable corrections, server-side admin permissions.
-5. **Production:** threat review, load/concurrency tests, failure recovery, offline fallback procedure, deployment on Cloudflare Pages, backup/operational checklist.
+5. **Production:** threat review, load/concurrency tests, failure recovery, offline fallback procedure, deployment on Cloudflare (Workers static assets), backup/operational checklist.
 
 Advance to the next phase only when the user explicitly asks.

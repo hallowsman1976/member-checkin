@@ -1,5 +1,13 @@
-# Cloudflare Pages (static SPA). Build: `npm run build`, output: dist.
-# Set VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY as Pages environment variables (build time).
-name = "smart-member-checkin"
-pages_build_output_dir = "dist"
+# Cloudflare Workers static assets (the SPA has no server code).
+# Workers Builds runs `npx wrangler deploy`; [build] produces dist/ first.
+# VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY must be set as *build* variables.
+name = "member-checkin"
 compatibility_date = "2026-10-01"
+
+[build]
+command = "npm run build"
+
+[assets]
+directory = "./dist"
+# Unknown paths (e.g. /check-in on reload) serve index.html; public/_headers still applies.
+not_found_handling = "single-page-application"

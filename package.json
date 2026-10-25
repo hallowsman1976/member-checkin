@@ -14,7 +14,7 @@
     "db:test": "supabase test db",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:load": "vitest run --config vitest.load.config.ts",
-    "deploy:pages": "npm run build && npx wrangler pages deploy dist"
+    "deploy": "npx wrangler deploy"
   },
   "dependencies": {
     "@fontsource/noto-sans-thai": "^5.3.0",

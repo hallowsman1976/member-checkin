@@ -1,6 +1,6 @@
 # การติดตั้งระบบจริง (Production)
 
-ระบบมี 2 ส่วน: **Supabase** (ฐานข้อมูล, Auth, Realtime, Edge Function) และ **Cloudflare Pages** (หน้าเว็บ static)
+ระบบมี 2 ส่วน: **Supabase** (ฐานข้อมูล, Auth, Realtime, Edge Function) และ **Cloudflare Workers** (หน้าเว็บ static assets)
 ทำตามลำดับด้านล่างครั้งเดียว ปีถัดไปใช้โปรเจกต์เดิม เพียงสร้างกิจกรรมใหม่ (ดู `OPERATIONS.md`)
 
 ## 1. Supabase project
@@ -19,7 +19,7 @@
 
    ```bash
    npx supabase functions deploy admin-staff
-   npx supabase secrets set ALLOWED_ORIGINS=https://<your-pages-domain>
+   npx supabase secrets set ALLOWED_ORIGINS=https://<your-web-domain>
    ```
 
    `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` ถูกตั้งให้ function อัตโนมัติ — **ห้าม** ใส่ service role key ในหน้าเว็บหรือ Cloudflare
@@ -28,7 +28,7 @@
    - Sign In / Providers → Email: **เปิด** Email provider, **ปิด** "Allow new users to sign up", ปิด "Confirm email"
    - Anonymous sign-ins: **ปิด**
    - Password: ขั้นต่ำ **8** ตัว, ต้องมี **letters and digits**
-   - URL Configuration → Site URL: `https://<your-pages-domain>`
+   - URL Configuration → Site URL: `https://<your-web-domain>`
    - Rate limits → sign-in: ค่าเริ่มต้น 30 ครั้ง/5 นาที/IP เพียงพอสำหรับ 8 เครื่อง (ทุกเครื่องในงานมักออก IP เดียวกันผ่าน NAT — อย่าให้ทุกคน login ผิดซ้ำ ๆ พร้อมกัน)
 5. สร้าง **admin คนแรก** (ครั้งเดียว):
    - Authentication → Users → Add user → ใส่อีเมล/รหัสผ่าน และติ๊ก Auto Confirm
@@ -42,18 +42,24 @@
    บัญชีอื่นทั้งหมดสร้างจากหน้า **เจ้าหน้าที่และจุดลงทะเบียน** ในแอป
 6. ตรวจความปลอดภัยฐานข้อมูล: Dashboard → Advisors → Security / Performance ต้องไม่มี error
 
-## 2. Cloudflare Pages
+## 2. Cloudflare Workers (static assets)
 
-1. Workers & Pages → Create → Pages → เชื่อม Git repository (หรืออัปโหลดด้วย `npm run deploy:pages`)
-2. Build settings: Framework **None**, Build command `npm run build`, Output directory `dist`, Node 22
-3. Environment variables (Production, ใช้ตอน build):
+ตั้งค่าทั้งหมดอยู่ใน `wrangler.toml` แล้ว: `[build]` รัน `npm run build` ก่อน deploy และ `[assets]` ส่ง `dist/` ขึ้นไป
+พร้อม SPA fallback (เปิด `/check-in` ตรง ๆ หรือกด reload ได้)
+
+1. Workers & Pages → Create → **Import a repository** → เลือก `member-checkin`
+   - ชื่อ Worker ต้องตรงกับ `name` ใน `wrangler.toml` (`member-checkin`)
+2. Build settings: Build command **เว้นว่าง** (หรือ `npm run build`), Deploy command `npx wrangler deploy`
+3. Settings → Build → **Variables and secrets** (เป็นค่าที่ใช้ตอน build — ไม่ใช่ Variables ของ Worker runtime):
    - `VITE_SUPABASE_URL` = `https://<project-ref>.supabase.co`
    - `VITE_SUPABASE_ANON_KEY` = anon / publishable key (ปลอดภัยที่จะอยู่ในเบราว์เซอร์ — สิทธิ์ทั้งหมดบังคับด้วย RLS และ RPC)
-4. ไฟล์ที่ deploy ไปพร้อมกัน (อยู่ใน `public/`):
-   - `_redirects` — SPA fallback ให้ทุก path เปิด `index.html`
-   - `_headers` — CSP (อนุญาตเฉพาะตัวเองและ `*.supabase.co`), HSTS, X-Frame-Options, no-referrer, noindex
+   ถ้าไม่ตั้ง build จะผ่านแต่หน้าเว็บจะว่างและ Console แจ้ง "Missing VITE_SUPABASE_URL"
+4. `public/_headers` ถูก deploy ไปด้วย: CSP (อนุญาตเฉพาะตัวเองและ `*.supabase.co`), HSTS, X-Frame-Options, no-referrer, noindex
    ถ้าใช้ custom domain ของ Supabase ต้องเพิ่มโดเมนนั้นใน `connect-src` ของ `_headers`
-5. หลัง deploy เปิดเว็บ → กด F12 → Console ต้องไม่มีข้อความ "Content Security Policy"
+5. ทุกครั้งที่ push ขึ้น `main` จะ deploy ใหม่อัตโนมัติ (หรือรัน `npm run deploy` จากเครื่องที่ login wrangler แล้ว)
+6. หลัง deploy เปิดเว็บ → กด F12 → Console ต้องไม่มีข้อความ "Content Security Policy"
+7. นำโดเมน `https://member-checkin.<subdomain>.workers.dev` (หรือ custom domain) ไปตั้งเป็น Site URL ใน Supabase
+   และ `ALLOWED_ORIGINS` ของ Edge Function (ข้อ 1.3–1.4)
 
 ## 3. ตรวจหลัง deploy (smoke test)
 
