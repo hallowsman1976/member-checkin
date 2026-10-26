@@ -7,6 +7,7 @@ import {
   type Outcome,
   type RpcResponse,
 } from './outcome'
+import { normalizeSearchQuery } from './searchQuery'
 
 const REQUEST_TIMEOUT_MS = 10_000
 
@@ -33,7 +34,9 @@ export async function registerMember(eventId: string, memberId: string, myStaffI
 }
 
 export async function searchMembers(query: string, signal: AbortSignal) {
-  const { data, error } = await supabase.rpc('search_members', { p_query: query }).abortSignal(signal)
+  const { data, error } = await supabase
+    .rpc('search_members', { p_query: normalizeSearchQuery(query) })
+    .abortSignal(signal)
   if (error) throw error
   return z.array(memberRowSchema).parse(data)
 }
