@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { useStaffContext } from '@/features/auth/StaffContext'
 import { formatTime } from '@/lib/format'
 import { checkStatus, registerMember, searchMembers } from './api'
+import { FIRST_CHECKINS_LIMIT, isFirstCheckin } from './labels'
 import { MemberResults, resultOptionId } from './MemberResults'
 import type { Checkin, MemberRow, Outcome } from './outcome'
 import { canConfirm, ReviewPanel, type SubmitPhase } from './ReviewPanel'
@@ -95,7 +96,8 @@ function CheckinWorkspace({ eventId }: { eventId: string }) {
     void queryClient.invalidateQueries({ queryKey: searchQueryKey })
     if (result.kind === 'registered') {
       setLastSuccess({ member, checkin: result.checkin, recovered: result.recovered })
-      toast.success(`ลงทะเบียนสำเร็จ: ${member.full_name}`)
+      const no = result.checkin.checkin_no
+      toast.success(`ลงทะเบียนสำเร็จ: ${member.full_name}${no !== undefined ? ` · ลำดับที่ ${no}` : ''}`)
       resetToSearch(true)
       return
     }
@@ -158,11 +160,22 @@ function CheckinWorkspace({ eventId }: { eventId: string }) {
         {lastSuccess && (
           <div className="flex items-center gap-3 rounded-lg border border-success/40 bg-success/10 px-4 py-2 text-sm">
             <CheckCircle2 className="size-5 shrink-0 text-success" aria-hidden />
-            <span className="truncate">
+            <span className="min-w-0 flex-1 truncate">
               ล่าสุด: <span className="font-semibold">{lastSuccess.member.full_name}</span> ({lastSuccess.member.member_no})
               เวลา {formatTime(lastSuccess.checkin.checked_in_at)}
               {lastSuccess.recovered && ' · ยืนยันผลหลังการเชื่อมต่อขัดข้อง'}
             </span>
+            {lastSuccess.checkin.checkin_no !== undefined &&
+              (isFirstCheckin(lastSuccess.checkin.checkin_no) ? (
+                <span
+                  role="status"
+                  className="shrink-0 rounded-md bg-warning px-3 py-1 text-base font-bold text-foreground"
+                >
+                  ลำดับที่ {lastSuccess.checkin.checkin_no} · {FIRST_CHECKINS_LIMIT} คนแรก
+                </span>
+              ) : (
+                <span className="shrink-0 font-semibold tabular-nums">ลำดับที่ {lastSuccess.checkin.checkin_no}</span>
+              ))}
           </div>
         )}
 

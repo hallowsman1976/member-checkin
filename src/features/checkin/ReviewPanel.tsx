@@ -27,6 +27,7 @@ function Notice({ tone, icon, children }: { tone: 'warning' | 'danger'; icon: Re
 function CheckinDetail({ checkin }: { checkin: Checkin }) {
   return (
     <p className="text-muted">
+      {checkin.checkin_no !== undefined && <>ลำดับที่ {checkin.checkin_no} · </>}
       เมื่อ {formatDateTime(checkin.checked_in_at)} · จุด {checkin.station_code} {checkin.station_name} · โดย{' '}
       {checkin.staff_name}
     </p>

@@ -8,7 +8,7 @@ import { localConfig, noSession, signIn } from './local'
 const EVENT_ID = '30000000-0000-0000-0000-000000000001'
 
 type Client = SupabaseClient<Database>
-type RegisterResult = { result: string; code?: string; checkin?: { station_code: string; staff_id: string } }
+type RegisterResult = { result: string; code?: string; checkin?: { checkin_no: number; station_code: string; staff_id: string } }
 
 const config = localConfig()
 const service: Client = createClient<Database>(config.url, config.serviceKey, noSession)
@@ -102,6 +102,7 @@ describe('register_member under concurrency', () => {
     expect(tally(results)).toEqual({ registered: jobs.length })
     expect(await checkinCount(jobs.map((j) => j.no))).toBe(jobs.length)
     results.forEach((r, i) => expect(r.checkin?.station_code).toBe(`S0${jobs[i]!.station}`))
+    expect(new Set(results.map((r) => r.checkin?.checkin_no)).size).toBe(jobs.length)
   })
 
   it('repeated requests from one station (double submit): one check-in', async () => {

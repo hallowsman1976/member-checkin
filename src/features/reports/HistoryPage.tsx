@@ -125,6 +125,7 @@ export function HistoryPage() {
             <table className="w-full min-w-[56rem] text-sm">
               <thead className="border-b border-border bg-background text-left text-muted">
                 <tr>
+                  <th className="px-4 py-2 text-right font-medium">ลำดับ</th>
                   <th className="px-4 py-2 font-medium">เวลา</th>
                   <th className="px-4 py-2 font-medium">เลขสมาชิก</th>
                   <th className="px-4 py-2 font-medium">ชื่อ-สกุล</th>
@@ -138,25 +139,26 @@ export function HistoryPage() {
               <tbody className="divide-y divide-border">
                 {history.isPending ? (
                   <tr>
-                    <td colSpan={isAdmin ? 8 : 7} className="px-4 py-6 text-center text-muted">
+                    <td colSpan={isAdmin ? 9 : 8} className="px-4 py-6 text-center text-muted">
                       กำลังโหลด…
                     </td>
                   </tr>
                 ) : history.isError ? (
                   <tr>
-                    <td colSpan={isAdmin ? 8 : 7} className="px-4 py-6 text-center text-danger">
+                    <td colSpan={isAdmin ? 9 : 8} className="px-4 py-6 text-center text-danger">
                       โหลดข้อมูลไม่สำเร็จ
                     </td>
                   </tr>
                 ) : history.data.rows.length === 0 ? (
                   <tr>
-                    <td colSpan={isAdmin ? 8 : 7} className="px-4 py-6 text-center text-muted">
+                    <td colSpan={isAdmin ? 9 : 8} className="px-4 py-6 text-center text-muted">
                       ไม่มีรายการ
                     </td>
                   </tr>
                 ) : (
                   history.data.rows.map((r) => (
                     <tr key={r.id}>
+                      <td className="px-4 py-2 text-right tabular-nums">{r.checkin_no}</td>
                       <td className="px-4 py-2 tabular-nums">{formatDateTime(r.checked_in_at)}</td>
                       <td className="px-4 py-2 font-mono">{r.member_no}</td>
                       <td className="px-4 py-2">{r.full_name}</td>

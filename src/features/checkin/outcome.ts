@@ -17,6 +17,8 @@ export type MemberRow = z.infer<typeof memberRowSchema>
 
 export const checkinSchema = z.object({
   id: z.guid(),
+  /** Order of check-in within the event; optional until the migration reaches every database. */
+  checkin_no: z.number().int().optional(),
   status: z.enum(['active', 'cancelled']),
   checked_in_at: z.string(),
   staff_id: z.guid(),

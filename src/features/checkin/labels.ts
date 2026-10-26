@@ -26,3 +26,10 @@ export function blockReason(member: MemberRow): string | null {
   if (!member.is_eligible) return errorMessages.member_not_eligible
   return null
 }
+
+/** The first check-ins of an event get a highlighted order number. */
+export const FIRST_CHECKINS_LIMIT = 100
+
+export function isFirstCheckin(checkinNo: number | undefined): checkinNo is number {
+  return checkinNo !== undefined && checkinNo <= FIRST_CHECKINS_LIMIT
+}

@@ -79,6 +79,7 @@ export type Filters = {
 
 export const historyRowSchema = z.object({
   id: z.guid(),
+  checkin_no: z.number().int().optional(),
   member_no: z.string(),
   full_name: z.string(),
   department: z.string().nullable(),
