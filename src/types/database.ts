@@ -83,14 +83,14 @@ isOneToOne: false
                   ]
                 },"event_members": {
                   Row: {
-                    "created_at": string,"event_id": string,"member_id": string
+                    "created_at": string,"event_id": string,"member_id": string,"payout_seq": number | null,"station_id": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"event_id": string,"member_id": string
+                    "created_at"?: string,"event_id": string,"member_id": string,"payout_seq"?: number | null,"station_id"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"event_id"?: string,"member_id"?: string
+                    "created_at"?: string,"event_id"?: string,"member_id"?: string,"payout_seq"?: number | null,"station_id"?: string | null
                   }
                   Relationships: [
                     {
@@ -123,14 +123,14 @@ isOneToOne: false
                   ]
                 },"members": {
                   Row: {
-                    "created_at": string,"department": string | null,"full_name": string,"id": string,"is_active": boolean,"member_no": string,"member_type": Database["public"]['Enums']["member_type"]
+                    "created_at": string,"department": string | null,"full_name": string,"id": string,"is_active": boolean,"member_no": string,"member_type": Database["public"]['Enums']["member_type"],"member_unit": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"department"?: string | null,"full_name": string,"id"?: string,"is_active"?: boolean,"member_no": string,"member_type": Database["public"]['Enums']["member_type"]
+                    "created_at"?: string,"department"?: string | null,"full_name": string,"id"?: string,"is_active"?: boolean,"member_no": string,"member_type": Database["public"]['Enums']["member_type"],"member_unit"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"department"?: string | null,"full_name"?: string,"id"?: string,"is_active"?: boolean,"member_no"?: string,"member_type"?: Database["public"]['Enums']["member_type"]
+                    "created_at"?: string,"department"?: string | null,"full_name"?: string,"id"?: string,"is_active"?: boolean,"member_no"?: string,"member_type"?: Database["public"]['Enums']["member_type"],"member_unit"?: string | null
                   }
                   Relationships: [
                     
@@ -209,7 +209,7 @@ isOneToOne: false
                            },
 "export_report":
 { Args: { "p_event_id": string,"p_filter"?: string,"p_format": string,"p_from"?: string,"p_member_type"?: Database["public"]['Enums']["member_type"],"p_station_id"?: string,"p_to"?: string }; Returns: {
-              "checked_in_at": string,"checkin_status": Database["public"]['Enums']["checkin_status"],"department": string,"full_name": string,"is_registered": boolean,"member_no": string,"member_type": Database["public"]['Enums']["member_type"],"staff_name": string,"station_code": string,"station_name": string
+              "checked_in_at": string,"checkin_status": Database["public"]['Enums']["checkin_status"],"department": string,"full_name": string,"is_registered": boolean,"member_no": string,"member_type": Database["public"]['Enums']["member_type"],"staff_name": string,"station_code": string,"station_name": string,"member_unit": string,"assigned_station_code": string,"assigned_station_name": string,"payout_seq": number
             }[]
                            },
 "generate_eligibility":
@@ -226,6 +226,9 @@ isOneToOne: false
                            },
 "get_report":
 { Args: { "p_event_id": string,"p_filter"?: string,"p_from"?: string,"p_limit"?: number,"p_member_type"?: Database["public"]['Enums']["member_type"],"p_offset"?: number,"p_station_id"?: string,"p_to"?: string }; Returns: Json
+                           },
+"import_event_roster":
+{ Args: { "p_dry_run"?: boolean,"p_event_id": string,"p_rows": Json }; Returns: Json
                            },
 "import_members":
 { Args: { "p_dry_run"?: boolean,"p_rows": Json }; Returns: Json
@@ -252,7 +255,7 @@ isOneToOne: false
                            },
 "search_members":
 { Args: { "p_query": string }; Returns: {
-              "checked_in_at": string,"checkin_status": Database["public"]['Enums']["checkin_status"],"department": string,"full_name": string,"id": string,"is_active": boolean,"is_eligible": boolean,"member_no": string,"member_type": Database["public"]['Enums']["member_type"],"station_code": string,"station_name": string
+              "checked_in_at": string,"checkin_status": Database["public"]['Enums']["checkin_status"],"department": string,"full_name": string,"id": string,"is_active": boolean,"is_eligible": boolean,"member_no": string,"member_type": Database["public"]['Enums']["member_type"],"station_code": string,"station_name": string,"member_unit": string,"assigned_station_code": string,"assigned_station_name": string,"payout_seq": number
             }[]
                            },
 "set_event_status":

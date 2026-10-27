@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { formatDateTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import { blockReason, errorMessages, memberTypeLabels } from './labels'
+import { assignmentLabel, blockReason, errorMessages, memberTypeLabels, otherAssignedStation } from './labels'
 import type { Checkin, MemberRow, Outcome } from './outcome'
 
 export type SubmitPhase = 'idle' | 'submitting' | 'checking'
@@ -106,6 +106,7 @@ export function canConfirm(member: MemberRow, outcome: Outcome | null) {
 
 export function ReviewPanel({
   member,
+  myStationCode,
   outcome,
   phase,
   verified,
@@ -119,6 +120,7 @@ export function ReviewPanel({
   backRef,
 }: {
   member: MemberRow
+  myStationCode: string
   outcome: Outcome | null
   phase: SubmitPhase
   verified: boolean
@@ -133,6 +135,8 @@ export function ReviewPanel({
 }) {
   const busy = phase !== 'idle'
   const confirmable = canConfirm(member, outcome)
+  const assignment = assignmentLabel(member)
+  const otherStation = otherAssignedStation(member, myStationCode)
 
   return (
     <Card className="flex flex-col gap-5 p-6">
@@ -141,10 +145,29 @@ export function ReviewPanel({
         <h2 className="text-3xl font-bold leading-tight">{member.full_name}</h2>
         <p className="mt-1 text-base text-muted">
           {member.department ?? '-'} · {memberTypeLabels[member.member_type]}
+          {member.member_unit && <> · หน่วย {member.member_unit}</>}
         </p>
+        {assignment && (
+          <p
+            className={cn(
+              'mt-3 inline-block rounded-lg px-3 py-1.5 text-lg font-semibold',
+              otherStation ? 'bg-warning/15 text-foreground' : 'bg-primary-soft text-primary',
+            )}
+          >
+            {assignment}
+            {member.assigned_station_name && <span className="ml-2 text-sm font-normal">{member.assigned_station_name}</span>}
+          </p>
+        )}
       </div>
 
       <StateNotice member={member} outcome={outcome} />
+
+      {confirmable && otherStation && (
+        <Notice tone="warning" icon={<AlertTriangle className="size-5" />}>
+          <p className="font-semibold">สมาชิกนี้อยู่ในรายชื่อของจุดที่ {otherStation} ไม่ใช่จุดนี้ (จุด {myStationCode})</p>
+          <p>ลงทะเบียนที่นี่ได้ ระบบจะบันทึกว่าลงทะเบียนต่างจุด · แจ้งสมาชิกว่าลำดับรับค่าตอบแทนอยู่ที่จุด {otherStation}</p>
+        </Notice>
+      )}
 
       {confirmable && (
         <>

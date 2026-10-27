@@ -18,7 +18,7 @@ from (
     ('10000000-0000-0000-0000-000000000002'::uuid, 'super@checkin.test')
   union all
   select ('10000000-0000-0000-0000-0000000000' || lpad((n + 2)::text, 2, '0'))::uuid, 'staff' || n || '@checkin.test'
-  from generate_series(1, 8) as n
+  from generate_series(1, 9) as n
 ) as u (id, email);
 
 insert into auth.identities (id, user_id, provider_id, identity_data, provider, created_at, updated_at)
@@ -33,11 +33,11 @@ insert into public.staff_profiles (id, full_name, role) values
   ('10000000-0000-0000-0000-000000000002', 'หัวหน้างาน ทดสอบ', 'supervisor');
 insert into public.staff_profiles (id, full_name, role)
 select ('10000000-0000-0000-0000-0000000000' || lpad((n + 2)::text, 2, '0'))::uuid, 'เจ้าหน้าที่ จุด ' || n, 'staff'
-from generate_series(1, 8) as n;
+from generate_series(1, 9) as n;
 
 insert into public.stations (id, station_code, station_name)
 select ('20000000-0000-0000-0000-00000000000' || n)::uuid, 'S0' || n, 'จุดลงทะเบียน ' || n
-from generate_series(1, 8) as n;
+from generate_series(1, 9) as n;
 
 insert into public.events (id, title, event_date, status) values
   ('30000000-0000-0000-0000-000000000001', 'ประชุมใหญ่สามัญประจำปี 2569', '2026-12-20', 'open');
@@ -66,4 +66,4 @@ insert into public.staff_station_assignments (event_id, staff_id, station_id)
 select '30000000-0000-0000-0000-000000000001',
   ('10000000-0000-0000-0000-0000000000' || lpad((n + 2)::text, 2, '0'))::uuid,
   ('20000000-0000-0000-0000-00000000000' || n)::uuid
-from generate_series(1, 8) as n;
+from generate_series(1, 9) as n;

@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 import { formatTime } from '@/lib/format'
-import { blockReason, memberTypeLabels } from './labels'
+import { assignmentLabel, blockReason, memberTypeLabels, otherAssignedStation } from './labels'
 import type { MemberRow } from './outcome'
 
 export function StatusBadge({ member }: { member: MemberRow }) {
@@ -28,11 +28,13 @@ export const resultOptionId = (memberId: string) => `member-option-${memberId}`
 
 export function MemberResults({
   members,
+  myStationCode,
   highlighted,
   onHighlight,
   onSelect,
 }: {
   members: MemberRow[]
+  myStationCode: string
   highlighted: number
   onHighlight: (index: number) => void
   onSelect: (member: MemberRow) => void
@@ -58,6 +60,11 @@ export function MemberResults({
             <span className="block truncate text-base font-medium">{m.full_name}</span>
             <span className="block truncate text-sm text-muted">
               {m.department ?? '-'} · {memberTypeLabels[m.member_type]}
+              {assignmentLabel(m) && (
+                <span className={cn('ml-2 rounded px-1.5 font-medium', otherAssignedStation(m, myStationCode) ? 'bg-warning/15 text-foreground' : 'text-primary')}>
+                  {assignmentLabel(m)}
+                </span>
+              )}
             </span>
           </span>
           <StatusBadge member={m} />

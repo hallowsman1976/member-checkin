@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ReportRow } from './api'
-import { buildCsv, buildXlsx, exportColumns, toExportRow } from './exportFile'
+import { buildCsv, buildXlsx, exportColumns, payoutColumns, toExportRow, toPayoutRow } from './exportFile'
 
 const registered: ReportRow = {
   member_no: '000123',
@@ -39,7 +39,7 @@ describe('toExportRow', () => {
   })
 
   it('leaves check-in columns empty for unregistered members', () => {
-    expect(toExportRow(unregistered).slice(4)).toEqual(['ยังไม่ลงทะเบียน', '', '', ''])
+    expect(toExportRow(unregistered).slice(4, 8)).toEqual(['ยังไม่ลงทะเบียน', '', '', ''])
   })
 })
 
@@ -75,4 +75,32 @@ describe('buildXlsx', () => {
     expect(sheet.getCell(4, 2).type).toBe(ExcelJS.ValueType.String)
     expect(sheet.getCell(4, 5).value).toBe('ยังไม่ลงทะเบียน')
   }, 20_000) // first exceljs import can exceed the 5 s default on a cold cache
+})
+
+describe('payout export', () => {
+  const assigned: ReportRow = { ...registered, station_code: '1', assigned_station_code: '1', assigned_station_name: 'สสจ.', payout_seq: 7 }
+  const elsewhere: ReportRow = { ...assigned, member_no: '000124', station_code: '3', payout_seq: 8 }
+  const absent: ReportRow = { ...unregistered, assigned_station_code: '2', assigned_station_name: 'อ.เมือง', payout_seq: 1 }
+
+  it('puts the payout order first, flags another station and leaves the signature blank', () => {
+    expect(toPayoutRow(assigned)[0]).toBe('7')
+    expect(toPayoutRow(assigned)[6]).toBe('1')
+    expect(toPayoutRow(elsewhere)[6]).toBe('3 (ต่างจุด)')
+    expect(toPayoutRow(absent).slice(4, 8)).toEqual(['ยังไม่ลงทะเบียน', '', '', ''])
+  })
+
+  it('writes one sheet per assigned station', async () => {
+    const { default: ExcelJS } = await import('exceljs')
+    const workbook = new ExcelJS.Workbook()
+    await workbook.xlsx.load(await buildXlsx([assigned, elsewhere, absent], 'จ่ายค่าตอบแทน', 'payout'))
+    expect(workbook.worksheets.map((w) => w.name)).toEqual(['จุด 1', 'จุด 2'])
+    const sheet = workbook.worksheets[0]!
+    expect(sheet.getRow(2).values).toEqual([undefined, ...payoutColumns.map((c) => c.header)])
+    expect(sheet.rowCount).toBe(4)
+    expect(sheet.getCell(3, 2).value).toBe('000123')
+  }, 20_000)
+
+  it('adds the assigned station as the first CSV column', () => {
+    expect(buildCsv([assigned], 'payout').split('\r\n')[1]).toMatch(/^"1","7","000123"/)
+  })
 })

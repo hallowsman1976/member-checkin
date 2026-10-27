@@ -33,3 +33,15 @@ export const FIRST_CHECKINS_LIMIT = 100
 export function isFirstCheckin(checkinNo: number | undefined): checkinNo is number {
   return checkinNo !== undefined && checkinNo <= FIRST_CHECKINS_LIMIT
 }
+
+/** Assigned station of another station, or null when the member belongs here (or has none). */
+export function otherAssignedStation(member: MemberRow, myStationCode: string) {
+  return member.assigned_station_code && member.assigned_station_code !== myStationCode
+    ? member.assigned_station_code
+    : null
+}
+
+export function assignmentLabel(member: MemberRow) {
+  if (!member.assigned_station_code) return null
+  return `จุด ${member.assigned_station_code}${member.payout_seq ? ` · ลำดับ ${member.payout_seq}` : ''}`
+}

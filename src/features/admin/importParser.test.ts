@@ -64,3 +64,44 @@ describe('parseImportTable', () => {
     expect(parsed.warnings).toHaveLength(1)
   })
 })
+
+describe('parseImportTable roster columns', () => {
+  const header = ['ลำดับ', 'เลขสมาชิก', 'ชื่อ-นามสกุล', 'หน่วยงาน', 'ประเภทสมาชิก', 'จุดลงทะเบียน', 'หน่วยสมาชิก']
+
+  it('reads station, payout order and member unit from the yearly member file', () => {
+    const parsed = parseImportTable(
+      t(header, ['1', '00216', 'นายกิตติศักดิ์ ประคองสิน', 'สสจ.มุกดาหาร', 'สามัญ', '1', 'สสจ.มุกดาหาร']),
+    )
+    expect(parsed.issues).toEqual([])
+    expect(parsed.hasRoster).toBe(true)
+    expect(parsed.rows).toEqual([
+      {
+        member_no: '00216',
+        full_name: 'นายกิตติศักดิ์ ประคองสิน',
+        department: 'สสจ.มุกดาหาร',
+        member_type: 'ordinary',
+        member_unit: 'สสจ.มุกดาหาร',
+        station_code: '1',
+        payout_seq: 1,
+      },
+    ])
+  })
+
+  it('allows the same payout order at different stations but not within one', () => {
+    const parsed = parseImportTable(
+      t(
+        header,
+        ['1', '00001', 'A', '', 'สามัญ', '1', 'u'],
+        ['1', '00002', 'B', '', 'สามัญ', '2', 'u'],
+        ['1', '00003', 'C', '', 'สามัญ', '2', 'u'],
+        ['x', '00004', 'D', '', 'สามัญ', '2', 'u'],
+      ),
+    )
+    expect(parsed.issues.map((i) => i.line)).toEqual([4, 5])
+    expect(parsed.issues[0]!.message).toContain('ซ้ำกับแถวที่ 3')
+  })
+
+  it('is not a roster without station or order columns', () => {
+    expect(parseImportTable(t(['member_no', 'full_name', 'member_type'], ['1', 'A', 'ordinary'])).hasRoster).toBe(false)
+  })
+})

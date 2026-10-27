@@ -29,7 +29,7 @@
    - Anonymous sign-ins: **ปิด**
    - Password: ขั้นต่ำ **8** ตัว, ต้องมี **letters and digits**
    - URL Configuration → Site URL: `https://<your-web-domain>`
-   - Rate limits → sign-in: ค่าเริ่มต้น 30 ครั้ง/5 นาที/IP เพียงพอสำหรับ 8 เครื่อง (ทุกเครื่องในงานมักออก IP เดียวกันผ่าน NAT — อย่าให้ทุกคน login ผิดซ้ำ ๆ พร้อมกัน)
+   - Rate limits → sign-in: ค่าเริ่มต้น 30 ครั้ง/5 นาที/IP เพียงพอสำหรับ 9 เครื่อง (ทุกเครื่องในงานมักออก IP เดียวกันผ่าน NAT — อย่าให้ทุกคน login ผิดซ้ำ ๆ พร้อมกัน)
 5. สร้าง **admin คนแรก** (ครั้งเดียว):
    - Authentication → Users → Add user → ใส่อีเมล/รหัสผ่าน และติ๊ก Auto Confirm
    - SQL Editor:
@@ -80,6 +80,6 @@ npm run test:integration
 npm run test:load
 ```
 
-`test:load` จำลอง 8 จุดพร้อมกันกับสมาชิก 1,500 คน และรายงาน p50/p95 — รันกับ staging ได้โดยตั้ง
+`test:load` จำลอง 9 จุดพร้อมกันกับสมาชิก 1,500 คน และรายงาน p50/p95 — รันกับ staging ได้โดยตั้ง
 `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (ต้องมีบัญชี `staff1..8@checkin.test` และกิจกรรมที่เปิดอยู่;
 ห้ามรันกับ production เพราะจะเพิ่มและลบสมาชิกทดสอบ)

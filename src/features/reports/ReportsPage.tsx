@@ -17,6 +17,7 @@ const reportLabels: Record<ReportFilter, string> = {
   all: 'สมาชิกที่มีสิทธิ์ทั้งหมด',
   registered: 'ลงทะเบียนแล้ว',
   unregistered: 'ยังไม่ลงทะเบียน',
+  payout: 'รายชื่อจ่ายค่าตอบแทน',
 }
 
 function timestamp() {
@@ -40,9 +41,15 @@ export function ReportsPage() {
   const [offset, setOffset] = useState(0)
   const [exporting, setExporting] = useState<'xlsx' | 'csv' | null>(null)
 
-  // Station/time narrow check-ins, so they only apply to the "registered" list.
+  // Station/time narrow check-ins, so they only apply to the "registered" list;
+  // the payout list filters by assigned station.
   const effectiveFilters: Filters =
-    report === 'registered' ? filters : { memberType: filters.memberType }
+    report === 'registered'
+      ? filters
+      : report === 'payout'
+        ? { stationId: filters.stationId, memberType: filters.memberType }
+        : { memberType: filters.memberType }
+  const kind = report === 'payout' ? 'payout' : 'report'
 
   const rows = useQuery({
     queryKey: ['report', event?.id, report, effectiveFilters, offset],
@@ -58,9 +65,15 @@ export function ReportsPage() {
       const data = await fetchExportRows(event.id, format, report, effectiveFilters)
       const name = `${reportLabels[report]}-${timestamp()}`
       if (format === 'csv') {
-        downloadBlob(buildCsv(data), 'text/csv;charset=utf-8', `${name}.csv`)
+        downloadBlob(buildCsv(data, kind), 'text/csv;charset=utf-8', `${name}.csv`)
       } else {
-        const buffer = await buildXlsx(data, `${event.title} — ${reportLabels[report]} (${data.length.toLocaleString('th-TH')} รายการ)`)
+        const buffer = await buildXlsx(
+          data,
+          kind === 'payout'
+            ? `${event.title} — ${reportLabels[report]}`
+            : `${event.title} — ${reportLabels[report]} (${data.length.toLocaleString('th-TH')} รายการ)`,
+          kind,
+        )
         downloadBlob(buffer, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', `${name}.xlsx`)
       }
       toast.success(`ส่งออก ${data.length.toLocaleString('th-TH')} รายการแล้ว`)
@@ -127,11 +140,18 @@ export function ReportsPage() {
           setOffset(0)
         }}
         checkinFilters={report === 'registered'}
+        stationFilter={report === 'registered' || report === 'payout'}
       />
+      {report === 'payout' && (
+        <p className="text-xs text-muted">
+          รายชื่อตามจุดลงทะเบียนที่กำหนดในไฟล์นำเข้า เรียงตามลำดับ · ผู้รับค่าตอบแทนคือผู้ที่สถานะ "ลงทะเบียนแล้ว" · ไฟล์
+          Excel แยกชีตตามจุด
+        </p>
+      )}
       <p className="text-xs text-muted">การส่งออกทุกครั้งถูกบันทึกในบันทึกการตรวจสอบ (PDPA)</p>
 
       <Card className="overflow-x-auto">
-        <table className="w-full min-w-[56rem] text-sm">
+        <table className="w-full min-w-[62rem] text-sm">
           <thead className="border-b border-border bg-background text-left text-muted">
             <tr>
               <th className="px-4 py-2 font-medium">เลขสมาชิก</th>
@@ -141,24 +161,25 @@ export function ReportsPage() {
               <th className="px-4 py-2 font-medium">สถานะ</th>
               <th className="px-4 py-2 font-medium">เวลา</th>
               <th className="px-4 py-2 font-medium">จุด</th>
+              <th className="px-4 py-2 font-medium">ตามรายชื่อ</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {rows.isPending ? (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-muted">
+                <td colSpan={8} className="px-4 py-6 text-center text-muted">
                   กำลังโหลด…
                 </td>
               </tr>
             ) : rows.isError ? (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-danger">
+                <td colSpan={8} className="px-4 py-6 text-center text-danger">
                   โหลดข้อมูลไม่สำเร็จ
                 </td>
               </tr>
             ) : rows.data.rows.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-muted">
+                <td colSpan={8} className="px-4 py-6 text-center text-muted">
                   ไม่มีรายการ
                 </td>
               </tr>
@@ -171,7 +192,17 @@ export function ReportsPage() {
                   <td className="px-4 py-2">{memberTypeLabels[r.member_type]}</td>
                   <td className={cn('px-4 py-2', r.is_registered ? 'text-success' : 'text-muted')}>{statusLabel(r)}</td>
                   <td className="px-4 py-2 tabular-nums">{r.checked_in_at ? formatDateTime(r.checked_in_at) : '-'}</td>
-                  <td className="px-4 py-2">{r.station_code ?? '-'}</td>
+                  <td
+                    className={cn(
+                      'px-4 py-2',
+                      r.station_code && r.assigned_station_code && r.station_code !== r.assigned_station_code && 'font-medium text-danger',
+                    )}
+                  >
+                    {r.station_code ?? '-'}
+                  </td>
+                  <td className="px-4 py-2 tabular-nums">
+                    {r.assigned_station_code ? `จุด ${r.assigned_station_code}${r.payout_seq ? ` · ${r.payout_seq}` : ''}` : '-'}
+                  </td>
                 </tr>
               ))
             )}

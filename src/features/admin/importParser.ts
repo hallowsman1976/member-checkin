@@ -4,12 +4,18 @@ export type ImportRow = {
   department: string | null
   member_type: string
   is_active?: boolean
+  /** Roster columns (หน่วยสมาชิก / จุดลงทะเบียน / ลำดับ), present only when the file has them. */
+  member_unit?: string | null
+  station_code?: string | null
+  payout_seq?: number | null
 }
 
 export type ImportIssue = { line: number; message: string }
 
 export type ParsedImport = {
   rows: ImportRow[]
+  /** True when the file carries station or payout order, i.e. it is an event roster. */
+  hasRoster: boolean
   /** Spreadsheet line number of each row (header is line 1). */
   lines: number[]
   issues: ImportIssue[]
@@ -25,6 +31,9 @@ const headerAliases: Record<keyof ImportRow, string[]> = {
   department: ['department', 'หน่วยงาน', 'สังกัด'],
   member_type: ['member_type', 'ประเภท', 'ประเภทสมาชิก'],
   is_active: ['is_active', 'สถานะ', 'สถานะสมาชิก'],
+  member_unit: ['member_unit', 'หน่วยสมาชิก'],
+  station_code: ['station_code', 'จุดลงทะเบียน', 'จุด'],
+  payout_seq: ['payout_seq', 'ลำดับ', 'ลำดับที่'],
 }
 
 const memberTypeValues: Record<string, 'ordinary' | 'associate'> = {
@@ -51,7 +60,7 @@ const normalize = (s: string) => s.replace(/\s+/g, ' ').trim()
 const key = (s: string) => normalize(s).toLowerCase()
 
 export function parseImportTable(table: RawCell[][]): ParsedImport {
-  const result: ParsedImport = { rows: [], lines: [], issues: [], warnings: [] }
+  const result: ParsedImport = { rows: [], hasRoster: false, lines: [], issues: [], warnings: [] }
   const [header, ...body] = table
   if (!header) {
     result.issues.push({ line: 1, message: 'ไม่พบหัวตาราง' })
@@ -70,12 +79,14 @@ export function parseImportTable(table: RawCell[][]): ParsedImport {
     }
   }
   if (result.issues.length > 0) return result
+  result.hasRoster = columns.has('station_code') || columns.has('payout_seq')
 
   const cell = (row: RawCell[], field: keyof ImportRow) => {
     const index = columns.get(field)
     return index === undefined ? undefined : row[index]
   }
   const seen = new Map<string, number>()
+  const seenSeq = new Map<string, number>()
   let numericMemberNo = false
 
   body.forEach((row, i) => {
@@ -98,6 +109,18 @@ export function parseImportTable(table: RawCell[][]): ParsedImport {
     if (activeText !== undefined && normalize(activeText) !== '' && isActive === undefined) {
       result.issues.push({ line, message: `สถานะ "${normalize(activeText)}" ไม่ถูกต้อง (ใช้งาน/พ้นสภาพ)` })
     }
+    const memberUnit = normalize(cell(row, 'member_unit')?.text ?? '') || null
+    const stationCode = normalize(cell(row, 'station_code')?.text ?? '') || null
+    const seqText = normalize(cell(row, 'payout_seq')?.text ?? '')
+    const payoutSeq = /^\d{1,9}$/.test(seqText) && Number(seqText) > 0 ? Number(seqText) : null
+    if (seqText && payoutSeq === null) result.issues.push({ line, message: `ลำดับ "${seqText}" ไม่ใช่ตัวเลขที่มากกว่า 0` })
+    if (payoutSeq !== null) {
+      const seqKey = `${stationCode ?? ''}|${payoutSeq}`
+      const first = seenSeq.get(seqKey)
+      if (first !== undefined) {
+        result.issues.push({ line, message: `ลำดับ ${payoutSeq} ของจุด ${stationCode ?? '-'} ซ้ำกับแถวที่ ${first}` })
+      } else seenSeq.set(seqKey, line)
+    }
     if (memberNo) {
       const first = seen.get(memberNo)
       if (first !== undefined) result.issues.push({ line, message: `เลขสมาชิก ${memberNo} ซ้ำกับแถวที่ ${first}` })
@@ -110,6 +133,9 @@ export function parseImportTable(table: RawCell[][]): ParsedImport {
       department: normalize(cell(row, 'department')?.text ?? '') || null,
       member_type: memberType ?? typeText,
       ...(isActive === undefined ? {} : { is_active: isActive }),
+      ...(columns.has('member_unit') ? { member_unit: memberUnit } : {}),
+      ...(columns.has('station_code') ? { station_code: stationCode } : {}),
+      ...(columns.has('payout_seq') ? { payout_seq: payoutSeq } : {}),
     })
     result.lines.push(line)
   })

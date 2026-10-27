@@ -36,7 +36,8 @@ export function CheckinPage() {
 }
 
 function CheckinWorkspace({ eventId }: { eventId: string }) {
-  const { staff } = useStaffContext()
+  const { staff, station } = useStaffContext()
+  const myStationCode = station?.station_code ?? ''
   const queryClient = useQueryClient()
 
   const [query, setQuery] = useState('')
@@ -217,6 +218,7 @@ function CheckinWorkspace({ eventId }: { eventId: string }) {
           ) : (
             <MemberResults
               members={members}
+              myStationCode={myStationCode}
               highlighted={highlighted}
               onHighlight={setHighlighted}
               onSelect={select}
@@ -229,6 +231,7 @@ function CheckinWorkspace({ eventId }: { eventId: string }) {
         {selected ? (
           <ReviewPanel
             member={selected}
+            myStationCode={myStationCode}
             outcome={outcome}
             phase={phase}
             verified={verified}

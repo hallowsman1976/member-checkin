@@ -1,11 +1,12 @@
 // Concurrency tests against local Supabase: `npm run test:integration` (after `npm run db:reset`).
-// Each staff account signs in separately, like the 8 notebook stations at the venue.
+// Each staff account signs in separately, like the 9 notebook stations at the venue.
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import type { Database } from '../../../src/types/database'
 import { localConfig, noSession, signIn } from './local'
 
 const EVENT_ID = '30000000-0000-0000-0000-000000000001'
+const STATION_COUNT = 9 // seeded staff1..9 at S01..S09
 
 type Client = SupabaseClient<Database>
 type RegisterResult = { result: string; code?: string; checkin?: { checkin_no: number; station_code: string; staff_id: string } }
@@ -48,7 +49,7 @@ function tally(results: RegisterResult[]) {
 const memberNo = (n: number) => String(900000 + n)
 
 beforeAll(async () => {
-  for (let i = 1; i <= 8; i++) stations.push(await signIn(`staff${i}@checkin.test`))
+  for (let i = 1; i <= STATION_COUNT; i++) stations.push(await signIn(`staff${i}@checkin.test`))
   admin = await signIn('admin@checkin.test')
 
   const { data, error } = await service.from('members').select('id, member_no').like('member_no', '9%')
@@ -83,17 +84,17 @@ describe('register_member under concurrency', () => {
     expect(loser.checkin?.station_code).toBe(winner.checkin?.station_code)
   })
 
-  it('same member on all 8 stations, 10 rounds: exactly one saved check-in each', async () => {
+  it('same member on all 9 stations, 10 rounds: exactly one saved check-in each', async () => {
     for (let round = 1; round <= 10; round++) {
       const no = memberNo(10 + round)
       const results = await Promise.all(stations.map((s) => register(s, no)))
-      expect(tally(results)).toEqual({ registered: 1, already_registered: 7 })
+      expect(tally(results)).toEqual({ registered: 1, already_registered: STATION_COUNT - 1 })
       expect(await checkinCount([no])).toBe(1)
     }
   })
 
-  it('8 staff registering different members at once: no lost writes', async () => {
-    const perStation = 10
+  it('9 staff registering different members at once: no lost writes', async () => {
+    const perStation = 8 // 9 x 8 members stay within the 100 seeded 9xxxxx members
     const jobs = stations.flatMap((s, i) =>
       Array.from({ length: perStation }, (_, j) => ({ station: i + 1, no: memberNo(21 + i * perStation + j) })),
     )
@@ -113,7 +114,7 @@ describe('register_member under concurrency', () => {
 
   it('race with event closure: every request is either saved or rejected, never half-done', async () => {
     const nos = Array.from({ length: 40 }, (_, i) => memberNo(3 + i))
-    const registrations = nos.map((no, i) => register(stations[i % 8]!, no))
+    const registrations = nos.map((no, i) => register(stations[i % STATION_COUNT]!, no))
     // The admin closes through the real RPC (FOR UPDATE vs register_member's FOR SHARE).
     const close = admin.rpc('set_event_status', { p_event_id: EVENT_ID, p_status: 'closed' })
     const [results, closeResult] = await Promise.all([Promise.all(registrations), close])

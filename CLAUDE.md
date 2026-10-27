@@ -19,7 +19,7 @@ Act as a senior full-stack engineer, PostgreSQL architect, security engineer and
 - App: **Smart Member Check-in 2569**
 - Organization: **สหกรณ์ออมทรัพย์สาธารณสุขจังหวัดมุกดาหาร จำกัด**
 - Use case: annual cooperative general meeting check-in, reusable in future years
-- ~1,500 members; **8 notebook stations** registering concurrently
+- ~1,300–1,500 members; **one notebook per station** registering concurrently (2569: 9 stations; count is configurable, never hard-code it)
 - A staff member searches by **member number or Thai full name**, checks physical ID, confirms check-in, then proceeds to next person
 - One effective check-in per member per event, even under concurrent requests
 - Fast keyboard-first experience, optimized for 1366×768 notebook screens
@@ -56,9 +56,9 @@ Keep all server logic in PostgreSQL RPC and Edge Functions; add a separate appli
 
 Use UUID primary keys. Minimum entities:
 
-1. `members`: id, member_no (TEXT UNIQUE; preserve leading zeros), full_name, department, member_type (`ordinary`/`associate`), is_active, created_at
+1. `members`: id, member_no (TEXT UNIQUE; preserve leading zeros), full_name (as in the file, title included), department (หน่วยงาน), member_unit (หน่วยสมาชิก, report grouping), member_type (`ordinary`/`associate`), is_active, created_at
 2. `events`: id, title, event_date, status (`draft`/`open`/`closed`), created_at. **At most one `open` event** (partial unique index on `status = 'open'`); check-in always targets it.
-3. `event_members`: event_id, member_id, PRIMARY KEY (event_id, member_id). Per-event eligibility snapshot, so past events keep their totals when the member list changes. Default generation: all active members of both types; admin may adjust while the event is `draft`.
+3. `event_members`: event_id, member_id, station_id (assigned จุดลงทะเบียน, nullable), payout_seq (ลำดับ on the meeting-allowance payout form; UNIQUE per event+station), PRIMARY KEY (event_id, member_id). Per-event eligibility snapshot, so past events keep their totals when the member list changes. Usually set by `import_event_roster` from the yearly member file (draft events only; replaces the snapshot); fallback: all active members. The assigned station is guidance: check-in at another station is allowed with a warning and recorded where it happened.
 4. `staff_profiles`: id FK auth.users, full_name, role, is_active
 5. `stations`: id, station_code UNIQUE, station_name, is_active
 6. `staff_station_assignments`: staff_id, station_id, event_id, is_active; **at most one active assignment per (event_id, staff_id)**
@@ -163,8 +163,8 @@ supabase/
 
 - Search exact member no., leading zero, Thai partial names (on the real DB locale), nonexistent member
 - Successful registration and return value
-- Simultaneous attempts for same member on 2 and 8 stations: **exactly one saved check-in**
-- 8 concurrent staff, different members, no lost writes
+- Simultaneous attempts for same member on 2 and all (9) stations: **exactly one saved check-in**
+- 9 concurrent staff, different members, no lost writes
 - Unauthorized/inactive staff, no assignment, inactive station, ineligible member, draft/closed event
 - Second open event rejected
 - Race with event closure, repeated requests, request timeout/unknown outcome via `get_checkin_status`

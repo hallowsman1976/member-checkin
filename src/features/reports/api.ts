@@ -56,6 +56,9 @@ export const dashboardStatsSchema = z.object({
     z.object({ station_id: z.guid(), station_code: z.string(), station_name: z.string(), registered: z.number() }),
   ),
   by_member_type: z.array(z.object({ member_type: memberType, eligible: z.number(), registered: z.number() })),
+  by_member_unit: z
+    .array(z.object({ member_unit: z.string().nullable(), eligible: z.number(), registered: z.number() }))
+    .default([]),
   recent: z.array(
     z.object({ member_no: z.string(), full_name: z.string(), station_code: z.string(), checked_in_at: z.string() }),
   ),
@@ -111,7 +114,8 @@ export async function fetchHistory(eventId: string, filters: Filters, limit: num
   return pageSchema(historyRowSchema).parse(data)
 }
 
-export const reportFilters = ['all', 'registered', 'unregistered'] as const
+/** 'payout' = every eligible member of an assigned station, in payout-form order. */
+export const reportFilters = ['all', 'registered', 'unregistered', 'payout'] as const
 export type ReportFilter = (typeof reportFilters)[number]
 
 export const reportRowSchema = z.object({
@@ -125,6 +129,11 @@ export const reportRowSchema = z.object({
   station_code: z.string().nullable(),
   station_name: z.string().nullable(),
   staff_name: z.string().nullable(),
+  /** Roster fields; optional until the migration reaches every database. */
+  member_unit: z.string().nullish(),
+  assigned_station_code: z.string().nullish(),
+  assigned_station_name: z.string().nullish(),
+  payout_seq: z.number().int().nullish(),
 })
 export type ReportRow = z.infer<typeof reportRowSchema>
 

@@ -153,6 +153,33 @@ export function DashboardPage() {
             </Card>
           </div>
 
+          {s.by_member_unit.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>ตามหน่วยสมาชิก</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="grid gap-x-8 gap-y-3 md:grid-cols-2">
+                  {s.by_member_unit.map((u) => (
+                    <li key={u.member_unit ?? ''} className="space-y-1.5 text-sm">
+                      <div className="flex justify-between gap-2">
+                        <span className="truncate">{u.member_unit ?? 'ไม่ระบุหน่วย'}</span>
+                        <span className="shrink-0 tabular-nums">
+                          <span className="font-medium">{fmt(u.registered)}</span> / {fmt(u.eligible)}
+                        </span>
+                      </div>
+                      <Meter
+                        value={u.registered}
+                        max={u.eligible}
+                        label={`${u.member_unit ?? 'ไม่ระบุหน่วย'}: ${fmt(u.registered)} จาก ${fmt(u.eligible)}`}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle>ลงทะเบียนล่าสุด</CardTitle>

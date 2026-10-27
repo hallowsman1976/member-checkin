@@ -61,11 +61,14 @@ export function FilterBar({
   onChange,
   showStatus = false,
   checkinFilters = true,
+  stationFilter = checkinFilters,
 }: {
   filters: Filters
   onChange: (filters: Filters) => void
   showStatus?: boolean
   checkinFilters?: boolean
+  /** Station filter on its own (the payout list filters by assigned station). */
+  stationFilter?: boolean
 }) {
   const stations = useStations()
   const set = (patch: Partial<Filters>) => onChange({ ...filters, ...patch })
@@ -77,7 +80,7 @@ export function FilterBar({
         <select
           id="f-station"
           className={cn(selectClass, 'block')}
-          disabled={!checkinFilters}
+          disabled={!stationFilter}
           value={filters.stationId ?? ''}
           onChange={(e) => set({ stationId: e.target.value || undefined })}
         >

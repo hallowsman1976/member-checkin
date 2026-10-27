@@ -1,4 +1,4 @@
-// Venue simulation: 8 stations working concurrently against 1,500 eligible members.
+// Venue simulation: 9 stations working concurrently against 1,500 eligible members.
 // Run locally with `npm run test:load`; against staging set SUPABASE_URL / SUPABASE_ANON_KEY /
 // SUPABASE_SERVICE_ROLE_KEY. Reports p50/p95/max and checks the CLAUDE.md targets.
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
@@ -9,8 +9,8 @@ import { localConfig, noSession, signIn } from '../integration/local'
 type Client = SupabaseClient<Database>
 
 const MEMBERS = 1500
-const STATIONS = 8
-const PER_STATION = 60 // registrations per station in this run (480 total)
+const STATIONS = 9
+const PER_STATION = 60 // registrations per station in this run (540 total)
 const prefix = '8' // synthetic member_no 800001..801500
 
 const config = localConfig()
@@ -92,7 +92,7 @@ beforeAll(async () => {
 afterAll(cleanup, 120_000)
 
 it(
-  'meets search/confirm targets with 8 concurrent stations and loses no writes',
+  'meets search/confirm targets with 9 concurrent stations and loses no writes',
   async () => {
     const stations = await Promise.all(Array.from({ length: STATIONS }, (_, i) => signIn(`staff${i + 1}@checkin.test`)))
     const search: number[] = []

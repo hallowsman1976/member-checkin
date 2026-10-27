@@ -12,6 +12,11 @@ export const memberRowSchema = z.object({
   checked_in_at: z.string().nullable(),
   station_code: z.string().nullable(),
   station_name: z.string().nullable(),
+  /** Roster fields for the open event; optional until the migration reaches every database. */
+  member_unit: z.string().nullish(),
+  assigned_station_code: z.string().nullish(),
+  assigned_station_name: z.string().nullish(),
+  payout_seq: z.number().int().nullish(),
 })
 export type MemberRow = z.infer<typeof memberRowSchema>
 
